@@ -167,18 +167,16 @@ when 'orphaned'
 
 # Find depended on packages
 when 'depended'
-  deps = pkg[OPTS[:depended]]
-
-  if deps.nil?
+  unless pkg.has_key?(OPTS[:depended])
     sputs 'No such package exists.'
   else
     sputs "Package(s) depended on #{OPTS[:depended]}"
-    putpkg(deps, pkg_d)
+    putpkg(pkg[OPTS[:depended]], pkg_d)
   end
 
 # Find required by packages
 when 'required'
-  if pkg[OPTS[:required]].nil?
+  unless pkg.has_key?(OPTS[:required])
     sputs 'No such package exists.'
   else
     reqs = []
