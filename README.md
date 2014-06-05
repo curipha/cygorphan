@@ -10,8 +10,7 @@ How to use
 1. Install Ruby.
 2. Just execute it.
 
-If a message "failed to select setup.ini" is displayed, update the constant `SETUPINI` to your location of setup.ini file and execute with `--no-auto-select-setupini` option.
-
+If a message "setup.ini is not readable!!" is displayed, update the constant `SETUPINI` to your location of setup.ini file.
 setup.ini file will be located at download directory of your installation.
 
 
