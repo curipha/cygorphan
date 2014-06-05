@@ -5,8 +5,6 @@ require 'optparse'
 pkg   = {}  # Required package list for each package : { 'package' => [ 'required_pkg', ...] }
 pkg_d = {}  # Package short description              : { 'package' => 'description', ...}
 
-i_pkg = []  # Packages installed                : [ 'package', ...]
-r_pkg = []  # Packages required by the other    : [ 'required_pkg', ...]
 b_pkg = []  # Packages marked as "Base"         : [ 'package', ...]
 o_pkg = []  # Packages marked as "Obsolete"     : [ 'package', ...]
 p_pkg = []  # Packages marked as "Post install" : [ 'package', ...]
@@ -82,6 +80,8 @@ def findini
         cachedir = fp.gets.strip
       when /^last-mirror/
         lastmirr = fp.gets.strip
+      else
+        next
       end
 
       unless cachedir.empty? || lastmirr.empty?
@@ -133,6 +133,9 @@ end
 case OPTS[:mode]
 # Find orphaned packages
 when 'orphaned'
+  i_pkg = []  # Packages installed             : [ 'package', ...]
+  r_pkg = []  # Packages required by the other : [ 'required_pkg', ...]
+
   # cygcheck belongs to "cygwin" package, tail and cut belong to "coreutils" package
   `cygcheck -cd | tail -n +3 | cut -d' ' -f1`.lines do |l|
     l.strip!
