@@ -170,8 +170,11 @@ when 'depended'
   unless pkg.has_key?(OPTS[:depended])
     sputs 'No such package exists.'
   else
+    deps = []
+    pkg.each {|k, v| deps << k if v.include?(OPTS[:depended]) }
+
     sputs "Package(s) depended on #{OPTS[:depended]}"
-    putpkg(pkg[OPTS[:depended]], pkg_d)
+    putpkg(deps, pkg_d)
   end
 
 # Find required by packages
@@ -179,11 +182,8 @@ when 'required'
   unless pkg.has_key?(OPTS[:required])
     sputs 'No such package exists.'
   else
-    reqs = []
-    pkg.each {|k, v| reqs << k if v.include?(OPTS[:required]) }
-
     sputs "Package(s) required by #{OPTS[:required]}"
-    putpkg(reqs, pkg_d)
+    putpkg(pkg[OPTS[:required]], pkg_d)
   end
 end
 
