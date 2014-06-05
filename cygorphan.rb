@@ -169,9 +169,9 @@ when 'depended'
   deps = pkg[OPTS[:depended]]
 
   if deps.nil?
-    puts 'No such package exists.'
+    sputs 'No such package exists.'
   elsif deps.length < 1
-    puts 'None.'
+    sputs 'None.'
   else
     puts deps.sort
   end
@@ -179,12 +179,16 @@ when 'depended'
 # Find required by packages
 when 'required'
   if pkg[OPTS[:required]].nil?
-    puts 'No such package exists.'
+    sputs 'No such package exists.'
   else
     reqs = []
     pkg.each {|k, v| reqs << k if v.include?(OPTS[:required]) }
 
-    puts reqs.length < 1 ? 'None.' : reqs.sort
+    if reqs.length < 1
+      sputs 'None.'
+    else
+      puts reqs.sort
+    end
   end
 end
 
