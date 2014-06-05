@@ -16,11 +16,7 @@ SETUPRC  = '/etc/setup/setup.rc'
 
 OPTS = {}
 OptionParser.new do |op|
-  op.version = '0.0.3'
-
-  OPTS[:auto] = true
-  op.on('--[no-]auto-select-setupini',
-        'Select setup.ini file automatically or not. Default is autoselect.') {|f| OPTS[:auto] = f }
+  op.version = '0.0.4'
 
   op.on('-b', '--display-base-packages',
         'Display packages even if its category is "Base".') {|f| OPTS[:base] = f }
@@ -85,9 +81,7 @@ t = Thread.new do
   pkglst = `cygcheck -cd | tail -n +3 | cut -d' ' -f1`
 end
 
-setupini = OPTS[:auto]  ? findini : SETUPINI
-
-abort "Error: Failed to select setup.ini automatically. Use '--no-auto-select-setupini' switch." unless setupini
+setupini = findini || SETUPINI
 abort "Error: setup.ini is not readable!! #{setupini}" unless File.readable?(setupini)
 
 open(setupini) do |fp|
