@@ -145,12 +145,11 @@ when 'orphaned'
 
 
   if OPTS[:obsl]
-    buf = []
-    o_pkg.each {|v| buf << prettify(v) if i_pkg.include?(v) }
+    obsl = o_pkg & i_pkg
 
-    unless buf.length < 1
+    unless obsl.length < 1
       sputs 'Obsoleted package(s)'
-      puts buf.sort
+      puts obsl.sort
     end
   end
 
