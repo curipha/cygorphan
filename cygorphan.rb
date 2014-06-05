@@ -131,12 +131,11 @@ orp -= b_pkg unless OPTS[:base]
 
 if OPTS[:obsl]
   buf = []
-  o_pkg.sort.each {|v| buf << prettify(v) if i_pkg.include?(v) }
+  o_pkg.each {|v| buf << prettify(v) if i_pkg.include?(v) }
 
   unless buf.length < 1
     sputs 'Obsoleted package(s)'
-    puts buf.join("\n")
-    puts
+    puts buf.sort
   end
 end
 
