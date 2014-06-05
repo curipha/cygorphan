@@ -35,7 +35,7 @@ def prettify(pkg, dscr = '')
   return pkg if OPTS[:smpl]
 
   r  = "* #{pkg}"
-  r += " : #{dscr}" unless dscr == ''
+  r += " : #{dscr}" unless dscr.empty?
 
   return r
 end
@@ -55,14 +55,14 @@ def findini
         lastmirr = fp.gets.strip
       end
 
-      if cachedir != '' && lastmirr != ''
+      unless cachedir.empty? || lastmirr.empty?
         downdir = cachedir + '\\' + CGI.escape(lastmirr)
         break
       end
     end
   end
 
-  return false if     downdir == ''           # Failed to parse setup.rc
+  return false if     downdir.empty?          # Failed to parse setup.rc
   return false unless File.readable?(downdir) # Last-used download directory is not readable
 
 
@@ -133,7 +133,7 @@ if OPTS[:obsl]
   buf = []
   o_pkg.sort.each {|v| buf << prettify(v) if i_pkg.include?(v) }
 
-  unless buf === []
+  unless buf.length < 1
     sputs 'Obsoleted package(s)'
     puts buf.join("\n")
     puts
