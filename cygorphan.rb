@@ -49,13 +49,24 @@ abort 'Error: "Required" and "Depended" option can not be specified at the same 
 def sputs(str)
   puts str unless OPTS[:smpl]
 end
-def prettify(pkg, dscr = '')
-  return pkg if OPTS[:smpl]
+def putpkg(pkg, dscr = [])
+  if pkg.empty?
+    sputs 'None.'
+  else
+    pkg.sort!
 
-  r  = "* #{pkg}"
-  r += " : #{dscr}" unless dscr.empty?
+    if OPTS[:smpl]
+      puts pkg
+    else
+      ljlen = pkg.map {|v| v.length }.max
 
-  return r
+      pkg.each {|v|
+        r  = "* #{v.ljust(ljlen)}"
+        r += " : #{dscr[v]}" unless dscr[v].nil? || dscr[v].empty?
+        puts r
+      }
+    end
+  end
 end
 def findini
   return false unless File.readable?(SETUPRC) # setup.rc is not exist or not readable
@@ -147,21 +158,12 @@ when 'orphaned'
   if OPTS[:obsl]
     obsl = o_pkg & i_pkg
 
-    unless obsl.length < 1
-      sputs 'Obsoleted package(s)'
-      puts obsl.sort
-    end
+    sputs 'Obsoleted package(s)'
+    putpkg(obsl, pkg_d)
   end
 
   sputs 'Orphaned package(s)'
-
-  if orp.length < 1
-    sputs 'None.'
-  else
-    lj = orp.map {|v| v.length }.max
-
-    orp.each {|v| puts prettify(v.ljust(lj), pkg_d[v]) }
-  end
+  putpkg(orp, pkg_d)
 
 # Find depended on packages
 when 'depended'
@@ -169,10 +171,9 @@ when 'depended'
 
   if deps.nil?
     sputs 'No such package exists.'
-  elsif deps.length < 1
-    sputs 'None.'
   else
-    puts deps.sort
+    sputs "Package(s) depended on #{OPTS[:depended]}"
+    putpkg(deps, pkg_d)
   end
 
 # Find required by packages
@@ -183,11 +184,8 @@ when 'required'
     reqs = []
     pkg.each {|k, v| reqs << k if v.include?(OPTS[:required]) }
 
-    if reqs.length < 1
-      sputs 'None.'
-    else
-      puts reqs.sort
-    end
+    sputs "Package(s) required by #{OPTS[:required]}"
+    putpkg(reqs, pkg_d)
   end
 end
 
