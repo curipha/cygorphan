@@ -16,7 +16,7 @@ SETUPRC  = '/etc/setup/setup.rc'
 
 OPTS = {}
 OptionParser.new do |op|
-  op.version = '0.0.4'
+  op.version = '0.1.0'
 
   op.on('-b', '--display-base-packages',
         'Display packages even if its category is "Base".') {|f| OPTS[:base] = f }
@@ -25,8 +25,26 @@ OptionParser.new do |op|
   op.on('-s', '--simple',
         'Display as simple output format.') {|f| OPTS[:smpl] = f }
 
+
+  OPTS[:mode] = 'orphaned'
+
+  op.on('-d PACKAGE', '--depended-on=PACKAGE',
+        'Display packages depended on the PACKAGE.') {|v|
+    OPTS[:mode] = 'depended'
+    OPTS[:depended] = v
+  }
+  op.on('-r PACKAGE', '--required-by=PACKAGE',
+        'Display packages required by the PACKAGE.') {|v|
+    OPTS[:mode] = 'required'
+    OPTS[:required] = v
+  }
+
   op.parse(ARGV)
 end
+
+abort 'Error: "Required" and "Depended" option can not be specified at the same time.' \
+  unless OPTS[:depended].nil? || OPTS[:required].nil?
+
 
 def sputs(str)
   puts str unless OPTS[:smpl]
@@ -75,12 +93,6 @@ def findini
 end
 
 
-pkglst = ''
-t = Thread.new do
-  # cygcheck belongs to "cygwin" package, tail and cut belong to "coreutils" package
-  pkglst = `cygcheck -cd | tail -n +3 | cut -d' ' -f1`
-end
-
 setupini = findini || SETUPINI
 abort "Error: setup.ini is not readable!! #{setupini}" unless File.readable?(setupini)
 
@@ -106,46 +118,73 @@ open(setupini) do |fp|
   end
 end
 
-t.join
 
-pkglst.lines do |l|
-  l.strip!
+case OPTS[:mode]
+# Find orphaned packages
+when 'orphaned'
+  # cygcheck belongs to "cygwin" package, tail and cut belong to "coreutils" package
+  `cygcheck -cd | tail -n +3 | cut -d' ' -f1`.lines do |l|
+    l.strip!
 
-  if pkg[l].nil?
-    $stderr.puts "Warning: Package #{l} is marked as installed, but it is not listed in setup.ini."
+    if pkg[l].nil?
+      $stderr.puts "Warning: Package #{l} is marked as installed, but it is not listed in setup.ini."
+    else
+      r_pkg << pkg[l]
+      i_pkg << l
+    end
+  end
+
+  r_pkg = r_pkg.flatten.uniq
+  orp   = i_pkg.sort
+
+  orp -= r_pkg # Delete packages required by the other
+  orp -= p_pkg # Delete packages marked as "Post install"
+
+  # Delete packages whose category is "Base"
+  orp -= b_pkg unless OPTS[:base]
+
+
+  if OPTS[:obsl]
+    buf = []
+    o_pkg.each {|v| buf << prettify(v) if i_pkg.include?(v) }
+
+    unless buf.length < 1
+      sputs 'Obsoleted package(s)'
+      puts buf.sort
+    end
+  end
+
+  sputs 'Orphaned package(s)'
+
+  if orp.length < 1
+    sputs 'None.'
   else
-    r_pkg << pkg[l]
-    i_pkg << l
+    lj = orp.map {|v| v.length }.max
+
+    orp.each {|v| puts prettify(v.ljust(lj), pkg_d[v]) }
   end
-end
 
-r_pkg = r_pkg.flatten.uniq
-orp   = i_pkg.sort
+# Find depended on packages
+when 'depended'
+  deps = pkg[OPTS[:depended]]
 
-orp -= r_pkg # Delete packages required by the other
-orp -= p_pkg # Delete packages marked as "Post install"
-
-# Delete packages whose category is "Base"
-orp -= b_pkg unless OPTS[:base]
-
-
-if OPTS[:obsl]
-  buf = []
-  o_pkg.each {|v| buf << prettify(v) if i_pkg.include?(v) }
-
-  unless buf.length < 1
-    sputs 'Obsoleted package(s)'
-    puts buf.sort
+  if deps.nil?
+    puts 'No such package exists.'
+  elsif deps.length < 1
+    puts 'None.'
+  else
+    puts deps.sort
   end
-end
 
-sputs 'Orphaned package(s)'
+# Find required by packages
+when 'required'
+  if pkg[OPTS[:required]].nil?
+    puts 'No such package exists.'
+  else
+    reqs = []
+    pkg.each {|k, v| reqs << k if v.include?(OPTS[:required]) }
 
-if orp.length < 1
-  sputs 'None.'
-else
-  lj = orp.map {|v| v.length }.max
-
-  orp.each {|v| puts prettify(v.ljust(lj), pkg_d[v]) }
+    puts reqs.length < 1 ? 'None.' : reqs.sort
+  end
 end
 
