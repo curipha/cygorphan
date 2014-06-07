@@ -114,6 +114,7 @@ abort "Error: setup.ini is not readable!! #{setupini}" unless File.readable?(set
 File.open(setupini, File::RDONLY) do |fp|
   cur= ''
 
+  fp.flock(File::LOCK_SH)
   while l = fp.gets
     case l
     when /^@/
@@ -143,6 +144,8 @@ when 'orphaned'
   r_pkg = []  # Packages required by the other : [ 'required_pkg', ...]
 
   File.open(INSTALLDB, File::RDONLY) do |fp|
+    fp.flock(File::LOCK_SH)
+
     fp.gets # skip 1st line
     while l = fp.gets
       l = l.split(' ', 2)[0].strip
