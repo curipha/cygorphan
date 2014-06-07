@@ -9,12 +9,13 @@ b_pkg = []  # Packages marked as "Base"         : [ 'package', ...]
 o_pkg = []  # Packages marked as "Obsolete"     : [ 'package', ...]
 p_pkg = []  # Packages marked as "Post install" : [ 'package', ...]
 
-SETUPINI = 'C:\cygwin\_package\http%3a%2f%2fftp.jaist.ac.jp%2fpub%2fcygwin%2f\x86\setup.ini'  # Fallback setup.ini
-SETUPRC  = '/etc/setup/setup.rc'
+SETUPINI  = 'C:\cygwin\_package\http%3a%2f%2fftp.jaist.ac.jp%2fpub%2fcygwin%2f\x86\setup.ini'  # Fallback setup.ini
+SETUPRC   = '/etc/setup/setup.rc'
+INSTALLDB = '/etc/setup/installed.db'
 
 OPTS = {}
 OptionParser.new do |op|
-  op.version = '0.1.1'
+  op.version = '0.1.2'
 
   op.on('-b', '--display-base-packages',
         'Display packages even if its category is "Base".') {|f| OPTS[:base] = f }
@@ -110,7 +111,7 @@ end
 setupini = findini || SETUPINI
 abort "Error: setup.ini is not readable!! #{setupini}" unless File.readable?(setupini)
 
-open(setupini) do |fp|
+File.open(setupini, File::RDONLY) do |fp|
   cur= ''
 
   while l = fp.gets
@@ -136,18 +137,22 @@ end
 case OPTS[:mode]
 # Find orphaned packages
 when 'orphaned'
+  abort "Error: installed.db is not readable!! #{INSTALLDB}" unless File.readable?(INSTALLDB)
+
   i_pkg = []  # Packages installed             : [ 'package', ...]
   r_pkg = []  # Packages required by the other : [ 'required_pkg', ...]
 
-  # cygcheck belongs to "cygwin" package, tail and cut belong to "coreutils" package
-  `cygcheck -cd | tail -n +3 | cut -d' ' -f1`.lines do |l|
-    l.strip!
+  File.open(INSTALLDB, File::RDONLY) do |fp|
+    fp.gets # skip 1st line
+    while l = fp.gets
+      l = l.split(' ', 2)[0].strip
 
-    if pkg[l].nil?
-      $stderr.puts "Warning: Package #{l} is marked as installed, but it is not listed in setup.ini."
-    else
-      r_pkg << pkg[l]
-      i_pkg << l
+      if pkg[l].nil?
+        $stderr.puts "Warning: Package #{l} is marked as installed, but it is not listed in setup.ini."
+      else
+        r_pkg << pkg[l]
+        i_pkg << l
+      end
     end
   end
 
