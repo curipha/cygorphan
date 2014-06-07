@@ -14,7 +14,7 @@ SETUPRC  = '/etc/setup/setup.rc'
 
 OPTS = {}
 OptionParser.new do |op|
-  op.version = '0.1.0'
+  op.version = '0.1.1'
 
   op.on('-b', '--display-base-packages',
         'Display packages even if its category is "Base".') {|f| OPTS[:base] = f }
@@ -47,7 +47,10 @@ abort 'Error: "Required" and "Depended" option can not be specified at the same 
 def sputs(str)
   puts str unless OPTS[:smpl]
 end
-def putpkg(pkg, dscr = [])
+def putpkg(pkg, dscr = [], b_pkg = [], p_pkg = [])
+  pkg -= b_pkg unless OPTS[:base] # Delete packages whose category is "Base"
+  pkg -= p_pkg                    # Delete packages marked as "Post install"
+
   if pkg.empty?
     sputs 'None.'
   else
@@ -148,25 +151,17 @@ when 'orphaned'
     end
   end
 
-  r_pkg = r_pkg.flatten.uniq
-  orp   = i_pkg.sort
-
-  orp -= r_pkg # Delete packages required by the other
-  orp -= p_pkg # Delete packages marked as "Post install"
-
-  # Delete packages whose category is "Base"
-  orp -= b_pkg unless OPTS[:base]
-
-
   if OPTS[:obsl]
     obsl = o_pkg & i_pkg
 
     sputs 'Obsoleted package(s)'
-    putpkg(obsl, pkg_d)
+    putpkg(obsl, pkg_d, b_pkg, p_pkg)
   end
 
+  orp = i_pkg - r_pkg.flatten # Delete packages required by the other
+
   sputs 'Orphaned package(s)'
-  putpkg(orp, pkg_d)
+  putpkg(orp, pkg_d, b_pkg, p_pkg)
 
 # Find depended on packages
 when 'depended'
@@ -177,7 +172,7 @@ when 'depended'
     pkg.each {|k, v| deps << k if v.include?(OPTS[:depended]) }
 
     sputs "Package(s) depended on #{OPTS[:depended]}"
-    putpkg(deps, pkg_d)
+    putpkg(deps, pkg_d, b_pkg, p_pkg)
   end
 
 # Find required by packages
@@ -186,7 +181,7 @@ when 'required'
     sputs 'No such package exists.'
   else
     sputs "Package(s) required by #{OPTS[:required]}"
-    putpkg(pkg[OPTS[:required]], pkg_d)
+    putpkg(pkg[OPTS[:required]], pkg_d, b_pkg, p_pkg)
   end
 end
 
