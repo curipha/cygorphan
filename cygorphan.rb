@@ -148,12 +148,12 @@ class Cygorphan
       while l = fp.gets
         case l
         when /^@/
-          cur = l.gsub(/^@\s+/, '').strip
+          cur = l.sub(/^@\s*/, '').strip
           @pkg[cur] = []
         when /^requires:/
-          @pkg[cur] = l.gsub(/^requires:\s/, '').split(' ').map {|v| v.strip }
+          @pkg[cur] = l.sub(/^requires:\s*/, '').split(' ').map {|v| v.strip }
         when /^sdesc:/
-          @pkg_d[cur] = l.gsub(/^sdesc:\s*"([^"]+)"/, '\1').gsub(/\\(.)/, '\1').strip
+          @pkg_d[cur] = l.sub(/^sdesc:\s*"([^"]+)"/, '\1').gsub(/\\(.)/, '\1').strip
         when /^category:.*\sBase/
           @b_pkg << cur
         when /^category:.*\s_obsolete/
