@@ -154,12 +154,10 @@ class Cygorphan
           @pkg[cur] = l.sub(/^requires:\s*/, '').split(' ').map {|v| v.strip }
         when /^sdesc:/
           @pkg_d[cur] = l.sub(/^sdesc:\s*"([^"]+)"/, '\1').gsub(/\\(.)/, '\1').strip
-        when /^category:.*\sBase/
-          @b_pkg << cur
-        when /^category:.*\s_obsolete/
-          @o_pkg << cur
-        when /^category:.*\s_PostInstallLast/
-          @p_pkg << cur
+        when /^category:/
+          @b_pkg << cur if l =~ /\bBase\b/
+          @o_pkg << cur if l =~ /\b_obsolete\b/
+          @p_pkg << cur if l =~ /\b_PostInstallLast\b/
         end
       end
     end
