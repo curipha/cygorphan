@@ -215,7 +215,6 @@ OptionParser.new do |op|
   op.on('-s', '--simple',
         'Display as simple output format.') {|f| c.simple_output = f }
 
-
   op.on('-d PACKAGE', '--depended-on=PACKAGE',
         'Display packages depended on the PACKAGE.') {|v|
     mode = :depended
