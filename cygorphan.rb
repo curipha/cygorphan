@@ -7,8 +7,6 @@ class Cygorphan
   SETUPRC   = '/etc/setup/setup.rc'
   INSTALLDB = '/etc/setup/installed.db'
 
-  SETUPINI = 'C:\cygwin\_package\http%3a%2f%2fftp.jaist.ac.jp%2fpub%2fcygwin%2f\x86\setup.ini'  # Fallback setup.ini
-
   # Accessors
   attr_accessor :include_base, :include_obsolete, :simple_output
 
@@ -139,7 +137,8 @@ class Cygorphan
 
   # Parse setup.ini and set up package information
   def setpkg
-    setupini = findini || SETUPINI
+    setupini = findini
+    abort 'Error: Failed to find a path to setup.ini.'     unless setupini.is_a?(String)
     abort "Error: setup.ini is not readable!! #{setupini}" unless File.readable?(setupini)
 
     File.open(setupini, File::RDONLY) do |fp|
