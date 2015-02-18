@@ -112,6 +112,7 @@ class Cygorphan
       fp.flock(File::LOCK_SH)
 
       while l = fp.gets
+        l = l.chars.find_all{|c| c.valid_encoding? }.join unless l.valid_encoding? # TODO: Use String#scrub if ruby >= 2.1.0
         case l
         when /^last-cache/
           cachedir = fp.gets.strip
