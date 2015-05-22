@@ -211,7 +211,7 @@ depended_package = nil  # Arguments (package name) of -d option
 required_package = nil  # Arguments (package name) of -r option
 
 OptionParser.new do |op|
-  op.version = '0.1.3'
+  op.version = '0.1.4'
 
   op.on('-b', '--display-base-packages',
         'Display packages even if its category is "Base".') {|f| c.include_base = f }
