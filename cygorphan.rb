@@ -8,7 +8,7 @@ class Cygorphan
   INSTALLDB = '/etc/setup/installed.db'
 
   # Accessors
-  attr_accessor :include_base, :include_obsolete, :simple_output
+  attr_accessor :include_base, :include_obsolete, :simple_output, :installed_only
 
   # Constructor
   def initialize
@@ -27,6 +27,7 @@ class Cygorphan
     @include_base     = false # true: Display packages whose category is "Base"
     @include_obsolete = false # true: Display packages whose category is "Obsolete"
     @simple_output    = false # true: Display as simple output format
+    @installed_only   = false # true: Display installed pacckage only
 
 
     # Parse setup.ini and set up package information
@@ -78,6 +79,9 @@ class Cygorphan
   def putpkg(pkg)
     pkg = [*pkg]
 
+    setpkg2 if @installed_only && @i_pkg.empty?
+
+    pkg &= @i_pkg if @installed_only    # Delete packages not installed
     pkg -= @b_pkg unless @include_base  # Delete packages whose category is "Base"
     pkg -= @p_pkg                       # Delete packages marked as "Post install"
 
@@ -215,6 +219,8 @@ OptionParser.new do |op|
         'Also display packages marked as "Obsolete" regardless of orphaned.') {|f| c.include_obsolete = f }
   op.on('-s', '--simple',
         'Display as simple output format.') {|f| c.simple_output = f }
+  op.on('-i', '--installed-only',
+        'Display packages only installed. (Use with -d or -r.)') {|f| c.installed_only = f }
 
   op.on('-d PACKAGE', '--depended-on=PACKAGE',
         'Display packages depended on the PACKAGE.') {|v|
